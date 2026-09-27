@@ -3,6 +3,7 @@ import gc
 import collections
 import numpy as np
 import pandas as pd
+import logging
 from preprocess import norm, get_tokens
 from features import extract_features
 
@@ -11,6 +12,8 @@ MAX_POSTINGS = 80
 TRAIN_NEGATIVES_PER_SOURCE1 = 5
 
 from tqdm.auto import tqdm
+
+logger = logging.getLogger(__name__)
 
 def load(path):
     return pd.read_csv(path, sep="\t", dtype=str).fillna("")
@@ -54,7 +57,7 @@ def load_ground_truth(ground_path):
     return truth
 
 def build_training_pairs(A, S, truth, source_name):
-    print(f"Building Training Pairs for {source_name}...")
+    logger.info(f"Building Training Pairs for {source_name}...")
     index = build_index(S)
     sid_to_idx = {row[0]: j for j, row in enumerate(S)}
     
@@ -98,13 +101,13 @@ def build_training_pairs(A, S, truth, source_name):
         if len(labels) >= 100000: # Limit for memory/speed during early dev
             break
             
-    print(f"Generated {sum(labels)} Positives and {len(labels) - sum(labels)} Negatives.")
+    logger.info(f"Generated {sum(labels)} Positives and {len(labels) - sum(labels)} Negatives.")
     return records_a, records_b, features_list, labels
 
 def prepare_all_data(data_dir):
     cache_path = os.path.join(data_dir, "train_data_cache.pkl")
     if os.path.exists(cache_path):
-        print(f"Loading cached data from {cache_path}...")
+        logger.info(f"Loading cached data from {cache_path}...")
         import pickle
         with open(cache_path, 'rb') as f:
             return pickle.load(f)

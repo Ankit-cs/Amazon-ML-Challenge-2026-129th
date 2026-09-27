@@ -33,6 +33,12 @@ class HybridEntityResolutionModel(nn.Module):
     def __init__(self, model_name="microsoft/deberta-v3-large", num_features=13):
         super().__init__()
         self.backbone = AutoModel.from_pretrained(model_name)
+        
+        # 1. OPTIMIZATION: Gradient Checkpointing
+        # Saves huge amounts of GPU VRAM, allowing larger effective batch sizes
+        if hasattr(self.backbone, "gradient_checkpointing_enable"):
+            self.backbone.gradient_checkpointing_enable()
+            
         hidden_size = self.backbone.config.hidden_size
         
         self.feat_embed = nn.Sequential(
@@ -41,20 +47,30 @@ class HybridEntityResolutionModel(nn.Module):
             nn.Dropout(0.1)
         )
         
-        # Exact 3rd place architecture cross-attention
         self.cross_attn = CrossAttentionBlock(hidden_size, 128)
-        self.dropout = nn.Dropout(0.2)
         
-        # Classification head for Binary Match (0 or 1)
+        # 2. OPTIMIZATION: Multi-Sample Dropout
+        # We create 5 different dropouts. Averaging their predictions makes the model vastly more robust.
+        self.dropouts = nn.ModuleList([nn.Dropout(0.1 + i * 0.05) for i in range(5)])
         self.classifier = nn.Linear(hidden_size, 1)
 
     def forward(self, input_ids, attention_mask, features):
         out = self.backbone(input_ids=input_ids, attention_mask=attention_mask, return_dict=True)
-        cls_emb = out.last_hidden_state[:, 0, :]
+        
+        # 3. OPTIMIZATION: Mean Pooling (Superior to [CLS] token)
+        # Instead of just taking the first token, we average all tokens weighted by the attention mask
+        token_embeddings = out.last_hidden_state
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        sum_embeddings = torch.sum(token_embeddings * input_mask_expanded, 1)
+        sum_mask = torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+        pooled_emb = sum_embeddings / sum_mask
         
         feat_emb = self.feat_embed(features)
         
-        fused = self.cross_attn(cls_emb, feat_emb)
-        fused = self.dropout(fused)
+        # Cross Attention Fusion
+        fused = self.cross_attn(pooled_emb, feat_emb)
         
-        return self.classifier(fused).squeeze(-1)
+        # Apply Multi-Sample Dropout and average the logits
+        logits = torch.mean(torch.stack([self.classifier(dropout(fused)) for dropout in self.dropouts], dim=0), dim=0)
+        
+        return logits.squeeze(-1)
