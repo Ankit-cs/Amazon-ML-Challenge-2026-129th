@@ -34,11 +34,6 @@ class HybridEntityResolutionModel(nn.Module):
         super().__init__()
         self.backbone = AutoModel.from_pretrained(model_name)
         
-        # 1. OPTIMIZATION: Gradient Checkpointing
-        # Saves huge amounts of GPU VRAM, allowing larger effective batch sizes
-        if hasattr(self.backbone, "gradient_checkpointing_enable"):
-            self.backbone.gradient_checkpointing_enable()
-            
         hidden_size = self.backbone.config.hidden_size
         
         self.feat_embed = nn.Sequential(
