@@ -1,4 +1,4 @@
-# Amazon ML Challenge - Entity Resolution Setup
+# Entity Resolution Setup
 
 Follow these instructions to set up the environment and run the Hybrid Entity Resolution model locally.
 

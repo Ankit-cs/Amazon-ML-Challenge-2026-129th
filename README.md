@@ -1,6 +1,6 @@
-# Amazon ML Challenge 2026: Business Entity Resolution
+# Deep Learning Entity Resolution
 
-This repository contains the advanced Deep Learning architecture built to solve the 2026 Amazon ML Business Entity Resolution Challenge. It implements the exact `DeBERTa-v3` + `Cross-Attention Fusion` architecture that secured 3rd place in the 2025 challenge, fully adapted for Entity Resolution (using `BCEWithLogitsLoss`).
+This repository contains an advanced Deep Learning architecture built to solve Business Entity Resolution tasks. It implements a robust `DeBERTa-v3` + `Cross-Attention Fusion` architecture, fully adapted for identifying matching entities (using `BCEWithLogitsLoss`).
 
 ## 🌟 Key Features & Updates
 - **Local F1-Score Validation:** Automatically splits the training data (80/20) and calculates the **F1-Score, Precision, and Recall** at the end of every epoch.
