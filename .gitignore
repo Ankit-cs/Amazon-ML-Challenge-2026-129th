@@ -1,0 +1,31 @@
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Caches (Do not upload large datasets or cache files)
+data/raw/*
+data/processed/*
+*.tsv
+*.csv
+*.pkl
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Models (Do not upload large weights)
+models/*.pt
+models/*.pth
+models/*.bin
+models/*.safetensors
+!models/.gitkeep
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
