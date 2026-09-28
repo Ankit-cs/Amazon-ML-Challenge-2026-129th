@@ -2,6 +2,9 @@
 
 Follow these instructions to set up the environment and run the Hybrid Entity Resolution model locally.
 
+## Model Architecture
+![Model Architecture](https://github.com/user-attachments/assets/c5792a0a-15f5-4093-bb53-a5949cb21647)
+
 ## 1. Prerequisites
 Ensure you have Python 3.10+ installed on your system. 
 
